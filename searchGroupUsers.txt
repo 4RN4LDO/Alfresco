@@ -1,0 +1,74 @@
+public class SearchGroupUsers extends AbstractWebScript {
+    private final static Logger LOG = Logger.getLogger(SetAuthority.class);
+
+    protected Repository m_repository = null;
+
+    protected ServiceRegistry m_serviceRegistry = null;
+
+    @Override
+    public void execute(final WebScriptRequest request, final WebScriptResponse response) throws IOException {
+
+        LOG.debug("Start executeImpl()");
+
+        AuthorityService authService = m_serviceRegistry.getAuthorityService();
+        PersonService personService = m_serviceRegistry.getPersonService();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String groupName = WebScriptUtil.getGroupName(request);
+        List<QName> list = new ArrayList<QName>();
+        List<Pair<QName, Boolean>> order = new ArrayList<Pair<QName, Boolean>>();
+        PagingRequest pagingRequest = new PagingRequest(10);
+
+        try {
+            SearchGroupUsersBean groupUsers = groupUser(authService, personService, groupName, list, order, pagingRequest);
+
+            response.getWriter().write(mapper.writeValueAsString(groupUsers));
+            response.setContentType(MimetypeMap.MIMETYPE_JSON);
+            response.setContentEncoding(StandardCharsets.UTF_8.name());
+        } catch (Throwable e) {
+            String errorMsg = "Unable to retrieve properties for node ";
+            throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
+        }
+    }
+
+    /**
+     * @param authService
+     * @param personService
+     * @param groupName
+     * @param list
+     * @param order
+     * @param pagingRequest
+     * @return
+     */
+    public SearchGroupUsersBean groupUser(AuthorityService authService, PersonService personService, String groupName,
+            List<QName> list, List<Pair<QName, Boolean>> order, PagingRequest pagingRequest) {
+
+        SearchGroupUsersBean groupUsers = new SearchGroupUsersBean();
+
+        if (groupName.equalsIgnoreCase("everyone")) {
+            PagingResults<PersonInfo> results = personService.getPeople("", list, order, pagingRequest);
+            List<PersonInfo> personList = results.getPage();
+            Set<String> authoritiesList = new HashSet<String>();
+            for (PersonInfo person : personList) {
+                authoritiesList.add(person.getUserName());
+            }
+            groupUsers.setUserName(authoritiesList);
+        } else {
+            Set<String> authoritiesList =
+                    authService.getContainedAuthorities(AuthorityType.USER, "GROUP_" + groupName, false);
+            groupUsers.setUserName(authoritiesList);
+        }
+        return groupUsers;
+    }
+
+    public void setRepository(final Repository repository) {
+
+        m_repository = repository;
+    }
+
+    public void setServiceRegistry(final ServiceRegistry registry) {
+
+        m_serviceRegistry = registry;
+    }
+}
