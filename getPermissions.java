@@ -1,4 +1,4 @@
-package org.ieee.sa.x1ng.webscripts.auth;import java.io.IOException;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
