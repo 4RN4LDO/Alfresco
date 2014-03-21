@@ -1,0 +1,34 @@
+/**
+     * @param permService
+     * @param authService
+     * @param userName
+     * @param nodeRef
+     * @return
+     */
+    public static String userAuthority(final PermissionService permService, final AuthorityService authService, final String userName,
+            final NodeRef nodeRef) {
+
+        Set<AccessPermission> perms = permService.getAllSetPermissions(nodeRef);
+        StringBuilder permissionsForUser = new StringBuilder();
+        for (AccessPermission perm : perms) {
+            if (hasUserAuthority(authService, userName, perm.getAuthority())) {
+                permissionsForUser.append(perm.getAuthority());
+                permissionsForUser.append(": ");
+                permissionsForUser.append(perm.getPermission());
+                permissionsForUser.append(", ");
+            }
+        }
+        return permissionsForUser.toString();
+    }
+
+    public static boolean hasUserAuthority(final AuthorityService authService, final String userName, final String authority) {
+
+        Set<String> auth = authService.getAuthoritiesForUser(userName);
+        Iterator<String> authorities = auth.iterator();
+        while (authorities.hasNext()) {
+            if (authorities.next().equalsIgnoreCase(authority)) {
+                return true;
+            }
+        }
+        return false;
+    }
