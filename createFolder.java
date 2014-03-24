@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ieee.sa.x1ng.webscripts.bean.CreateFolderBean;
 import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
 
@@ -18,7 +19,6 @@ import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
@@ -35,7 +35,6 @@ public class CreateFolder extends AbstractWebScript {
 
         LOG.debug("Start executeImpl()");
 
-        NodeService nodeService = m_serviceRegistry.getNodeService();
         FileFolderService fileService = m_serviceRegistry.getFileFolderService();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -45,17 +44,34 @@ public class CreateFolder extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            if (folderNameStr != null || folderNameStr != "") {
-                fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_CONTENT);
-            }
+            CreateFolderBean createBean = createFolder(fileService, folderNameStr, nodeRef);
 
-           // response.getWriter().write(mapper.writeValueAsString(createBean));
+            response.getWriter().write(mapper.writeValueAsString(createBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         } catch (Throwable e) {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
+    }
+
+
+    /**
+     * @param fileService
+     * @param folderNameStr
+     * @param nodeRef
+     * @return
+     */
+    public CreateFolderBean createFolder(FileFolderService fileService, String folderNameStr, NodeRef nodeRef) {
+
+        CreateFolderBean createBean = new CreateFolderBean();
+        if (folderNameStr != null && !folderNameStr.isEmpty()) {
+            fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_FOLDER);
+            createBean.setFolderName(folderNameStr + " folder was created");
+        }else {
+            createBean.setFolderName("Can't create folder: "+ folderNameStr);
+        }
+        return createBean;
     }
 
 
