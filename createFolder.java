@@ -7,12 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.ieee.sa.x1ng.webscripts.bean.CreateFolderBean;
 import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
@@ -45,15 +45,16 @@ public class CreateFolder extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            CreateFolderBean createBean = new CreateFolderBean();
-            String ParentNodeRefId = nodeService.getPrimaryParent(nodeRef).getParentRef().toString();
-
-
+           // CreateFolderBean createBean = new CreateFolderBean();
+            //String ParentNodeRefId = nodeService.getPrimaryParent(nodeRef).getParentRef().toString();
+            if (folderNameStr != null || folderNameStr != "") {
+                fileService.create(nodeRef, folderNameStr, ContentModel.ASSOC_CHILDREN);
+            }
 
            // createBean.setFolderName(folderNameStr);
            // createBean.setParentNodeRef(ParentNodeRefId);
 
-            response.getWriter().write(mapper.writeValueAsString(createBean));
+           // response.getWriter().write(mapper.writeValueAsString(createBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         } catch (Throwable e) {
