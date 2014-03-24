@@ -16,6 +16,7 @@ import com.componize.alfresco.repo.node.NodePathResolver;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.web.scripts.AbstractWebScript;
@@ -35,6 +36,7 @@ public class CreateFolder extends AbstractWebScript {
         LOG.debug("Start executeImpl()");
 
         NodeService nodeService = m_serviceRegistry.getNodeService();
+        FileFolderService fileService = m_serviceRegistry.getFileFolderService();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -46,8 +48,10 @@ public class CreateFolder extends AbstractWebScript {
             CreateFolderBean createBean = new CreateFolderBean();
             String ParentNodeRefId = nodeService.getPrimaryParent(nodeRef).getParentRef().toString();
 
-            createBean.setFolderName(folderNameStr);
-            createBean.setParentNodeRef(ParentNodeRefId);
+
+
+           // createBean.setFolderName(folderNameStr);
+           // createBean.setParentNodeRef(ParentNodeRefId);
 
             response.getWriter().write(mapper.writeValueAsString(createBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
