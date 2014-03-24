@@ -45,14 +45,9 @@ public class CreateFolder extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-           // CreateFolderBean createBean = new CreateFolderBean();
-            //String ParentNodeRefId = nodeService.getPrimaryParent(nodeRef).getParentRef().toString();
             if (folderNameStr != null || folderNameStr != "") {
-                fileService.create(nodeRef, folderNameStr, ContentModel.ASSOC_CHILDREN);
+                fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_CONTENT);
             }
-
-           // createBean.setFolderName(folderNameStr);
-           // createBean.setParentNodeRef(ParentNodeRefId);
 
            // response.getWriter().write(mapper.writeValueAsString(createBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
