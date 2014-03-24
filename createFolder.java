@@ -1,6 +1,7 @@
 package org.ieee.sa.x1ng.webscripts.node;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -10,6 +11,7 @@ import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
+import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.web.scripts.AbstractWebScript;
@@ -33,6 +35,11 @@ public class CreateFolder extends AbstractWebScript {
         try {
 
 
+
+
+            response.getWriter().write(mapper.writeValueAsString(permBean));
+            response.setContentType(MimetypeMap.MIMETYPE_JSON);
+            response.setContentEncoding(StandardCharsets.UTF_8.name());
         } catch (Throwable e) {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
