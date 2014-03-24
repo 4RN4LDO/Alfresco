@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ieee.sa.x1ng.webscripts.bean.CreateFolderBean;
+import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
@@ -14,6 +16,8 @@ import com.componize.alfresco.repo.node.NodePathResolver;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
@@ -30,14 +34,22 @@ public class CreateFolder extends AbstractWebScript {
 
         LOG.debug("Start executeImpl()");
 
+        NodeService nodeService = m_serviceRegistry.getNodeService();
+
         ObjectMapper mapper = new ObjectMapper();
 
+        String nodeRefStr = WebScriptUtil.getNodeRef(request);
+        String folderNameStr = WebScriptUtil.getFolderName(request);
+        NodeRef nodeRef = new NodeRef(nodeRefStr);
+
         try {
+            CreateFolderBean createBean = new CreateFolderBean();
+            String ParentNodeRefId = nodeService.getPrimaryParent(nodeRef).getParentRef().toString();
 
+            createBean.setFolderName(folderNameStr);
+            createBean.setParentNodeRef(ParentNodeRefId);
 
-
-
-            response.getWriter().write(mapper.writeValueAsString(permBean));
+            response.getWriter().write(mapper.writeValueAsString(createBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         } catch (Throwable e) {
