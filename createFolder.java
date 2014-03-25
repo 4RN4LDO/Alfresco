@@ -69,14 +69,13 @@ public class CreateFolder extends AbstractWebScript {
         try {
             if (folderNameStr != null && !folderNameStr.isEmpty()) {
                 fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_FOLDER);
-                createBean.setFolderName(folderNameStr + " folder was created");
+                createBean.setStatus(folderNameStr + " folder was created");
             }else {
-                createBean.setFolderName("Can't create folder: "+ folderNameStr);
+                createBean.setStatus("Can't create folder: "+ folderNameStr);
             }
         }catch (FileExistsException  exception) {
             String errorMsg = "Folder already exists, unable to create. Try Other name.";
-            createBean.setErrorStack(errorMsg);
-            //throw new Exception(errorMsg,exception);
+            createBean.setStatus(errorMsg);
         }
         return createBean;
     }
