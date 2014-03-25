@@ -13,10 +13,12 @@ import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
@@ -38,9 +40,13 @@ public class CreateContent extends AbstractWebScript{
 
         String nodeRefStr = WebScriptUtil.getNodeRef(request);
         String contentName = WebScriptUtil.getContentName(request);
+        NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
             CreateContentBean createContBean = new CreateContentBean();
+            if (contentName!= null && !contentName.isEmpty()) {
+                fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
+            }
 
             response.getWriter().write(mapper.writeValueAsString(createContBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
