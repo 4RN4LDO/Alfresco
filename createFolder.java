@@ -17,6 +17,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.model.FileExistsException;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.web.scripts.AbstractWebScript;
@@ -61,15 +62,21 @@ public class CreateFolder extends AbstractWebScript {
      * @param folderNameStr
      * @param nodeRef
      * @return
+     * @throws Exception
      */
-    public CreateFolderBean createFolder(FileFolderService fileService, String folderNameStr, NodeRef nodeRef) {
-
+    public CreateFolderBean createFolder(final FileFolderService fileService, final String folderNameStr, final NodeRef nodeRef) throws Exception {
         CreateFolderBean createBean = new CreateFolderBean();
-        if (folderNameStr != null && !folderNameStr.isEmpty()) {
-            fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_FOLDER);
-            createBean.setFolderName(folderNameStr + " folder was created");
-        }else {
-            createBean.setFolderName("Can't create folder: "+ folderNameStr);
+        try {
+            if (folderNameStr != null && !folderNameStr.isEmpty()) {
+                fileService.create(nodeRef, folderNameStr, ContentModel.TYPE_FOLDER);
+                createBean.setFolderName(folderNameStr + " folder was created");
+            }else {
+                createBean.setFolderName("Can't create folder: "+ folderNameStr);
+            }
+        }catch (FileExistsException  exception) {
+            String errorMsg = "Folder already exists, unable to create. Try Other name.";
+            createBean.setErrorStack(errorMsg);
+            //throw new Exception(errorMsg,exception);
         }
         return createBean;
     }
