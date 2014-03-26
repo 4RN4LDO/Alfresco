@@ -1,6 +1,7 @@
 package org.ieee.sa.x1ng.webscripts.node;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletResponse;
@@ -9,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.ieee.sa.x1ng.webscripts.bean.CreateContentBean;
 import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
+import org.springframework.extensions.surf.util.Content;
 import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
@@ -44,16 +46,21 @@ public class CreateContent extends AbstractWebScript{
         String nodeRefStr = WebScriptUtil.getNodeRef(request);
         String contentName = WebScriptUtil.getContentName(request);
         NodeRef nodeRef = new NodeRef(nodeRefStr);
-       FileInfo info;
+        FileInfo info;
 
 
         try {
             CreateContentBean createContBean = new CreateContentBean();
+            Content compContent = request.getContent();
+            InputStream inputStream = compContent.getInputStream();
+
             try {
                 if (contentName != null && !contentName.isEmpty()) {
-                   info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
+                  info= fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
                     ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
-                    writer.putContent("lorem ipsum dolorem");
+                    writer.putContent(inputStream);
+                    writer.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
+                    writer.setEncoding("UTF-8");
                     createContBean.setStatus(contentName + " was created");
                 } else {
                     createContBean.setStatus("The content needs a name");
