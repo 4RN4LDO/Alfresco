@@ -20,6 +20,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileExistsException;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
@@ -37,20 +38,22 @@ public class CreateContent extends AbstractWebScript{
         LOG.debug("Start executeImpl()");
 
         FileFolderService fileService = m_serviceRegistry.getFileFolderService();
-        //ScriptNode scriptNode = m_serviceRegistry.getNodeService();
 
         ObjectMapper mapper = new ObjectMapper();
 
         String nodeRefStr = WebScriptUtil.getNodeRef(request);
         String contentName = WebScriptUtil.getContentName(request);
         NodeRef nodeRef = new NodeRef(nodeRefStr);
-        FileInfo info;
+       FileInfo info;
+
 
         try {
             CreateContentBean createContBean = new CreateContentBean();
             try {
                 if (contentName != null && !contentName.isEmpty()) {
-                    info=fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
+                   info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
+                    ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
+                    writer.putContent("lorem ipsum dolorem");
                     createContBean.setStatus(contentName + " was created");
                 } else {
                     createContBean.setStatus("The content needs a name");
@@ -71,6 +74,8 @@ public class CreateContent extends AbstractWebScript{
         }
 
     }
+
+
 
     public void setRepository(final Repository repository) {
 
