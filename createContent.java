@@ -54,14 +54,35 @@ public class CreateContent extends AbstractWebScript {
         String contentName = WebScriptUtil.getContentName(request);
         NodeRef nodeRef = new NodeRef(nodeRefStr);
         CreateContentBean createContBean = new CreateContentBean();
-        FileInfo info;
 
+        try {
+            createContent(fileService, nodeService, contentName, nodeRef, createContBean);
+
+            response.getWriter().write(mapper.writeValueAsString(createContBean));
+            response.setContentType(MimetypeMap.MIMETYPE_JSON);
+            response.setContentEncoding(StandardCharsets.UTF_8.name());
+        }catch (Throwable e) {
+            String errorMsg = "Unable to retrieve properties for node ";
+            throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
+        }
+
+    }
+
+    /**
+     * @param fileService
+     * @param nodeService
+     * @param contentName
+     * @param nodeRef
+     * @param createContBean
+     */
+    public void createContent(final FileFolderService fileService, final NodeService nodeService, final String contentName, final NodeRef nodeRef, final CreateContentBean createContBean) {
+        FileInfo info;
         try {
             if (contentName != null && !contentName.isEmpty()) {
                 info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
                 Map<QName,Serializable> props = new HashMap<QName,Serializable>();
                 props.put(ContentModel.PROP_NAME, contentName);
-                props.put(ContentModel.PROP_TITLE, "Document");
+                props.put(ContentModel.PROP_TITLE, "Document title");
                 props.put(ContentModel.PROP_DESCRIPTION, "This is the description");
                 props.put(ContentModel.PROP_AUTHOR, "Client");
                 nodeService.setProperties(info.getNodeRef(), props);
@@ -74,18 +95,10 @@ public class CreateContent extends AbstractWebScript {
             } else {
                 createContBean.setStatus("The content needs a name");
             }
-
-            response.getWriter().write(mapper.writeValueAsString(createContBean));
-            response.setContentType(MimetypeMap.MIMETYPE_JSON);
-            response.setContentEncoding(StandardCharsets.UTF_8.name());
-        } catch (FileExistsException exception) {
+        }catch (FileExistsException exception) {
             String errorMsg = "Content already exists, unable to create. Try Other name.";
             createContBean.setStatus(errorMsg);
-        } catch (Throwable e) {
-            String errorMsg = "Unable to retrieve properties for node ";
-            throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
-
     }
 
     public void setRepository(final Repository repository) {
