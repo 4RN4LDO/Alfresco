@@ -5,3 +5,4 @@ Java web services:
 -Set authority: user name and authority
 -Search group users: group name
 -Create folder
+-Create Document and set Metadata
