@@ -60,10 +60,11 @@ public class CreateContent extends AbstractWebScript {
             if (contentName != null && !contentName.isEmpty()) {
                 info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
                 Map<QName,Serializable> props = new HashMap<QName,Serializable>();
-                props.put(ContentModel.PROP_TITLE, contentName);
+                props.put(ContentModel.PROP_NAME, contentName);
+                props.put(ContentModel.PROP_TITLE, "Document");
                 props.put(ContentModel.PROP_DESCRIPTION, "This is the description");
-                nodeService.setProperties(nodeRef, props);
-                // nodeService.addProperties(nodeRef, ContentModel.PROP_TITLE);
+                props.put(ContentModel.PROP_AUTHOR, "Client");
+                nodeService.setProperties(info.getNodeRef(), props);
                 ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
                 writer.setLocale(Locale.ENGLISH);
                 File file = new File("C:/Users/Administrator/Desktop/8/test.xml");
