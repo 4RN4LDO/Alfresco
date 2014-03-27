@@ -2,8 +2,11 @@ package org.ieee.sa.x1ng.webscripts.node;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,11 +27,13 @@ import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
 
-public class CreateContent extends AbstractWebScript{
+public class CreateContent extends AbstractWebScript {
     private static Logger LOG = Logger.getLogger(NodePropertySvc.class);
 
     protected Repository m_repository = null;
@@ -37,50 +42,50 @@ public class CreateContent extends AbstractWebScript{
 
     @Override
     public void execute(final WebScriptRequest request, final WebScriptResponse response) throws IOException {
+
         LOG.debug("Start executeImpl()");
 
         FileFolderService fileService = m_serviceRegistry.getFileFolderService();
+        NodeService nodeService = m_serviceRegistry.getNodeService();
 
         ObjectMapper mapper = new ObjectMapper();
 
         String nodeRefStr = WebScriptUtil.getNodeRef(request);
         String contentName = WebScriptUtil.getContentName(request);
         NodeRef nodeRef = new NodeRef(nodeRefStr);
+        CreateContentBean createContBean = new CreateContentBean();
         FileInfo info;
 
         try {
-            CreateContentBean createContBean = new CreateContentBean();
-
-            try {
-                if (contentName != null && !contentName.isEmpty()) {
-                    info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
-                    ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
-                    writer.setLocale(Locale.ENGLISH);
-                    File file = new File("C:/Users/Administrator/Desktop/8/test.xml");
-                    writer.setMimetype("text/xml");
-                    writer.putContent(file);
-                    createContBean.setStatus(contentName + " was created");
-                } else {
-                    createContBean.setStatus("The content needs a name");
-                }
-            }catch (FileExistsException  exception) {
-                String errorMsg = "Content already exists, unable to create. Try Other name.";
-                createContBean.setStatus(errorMsg);
+            if (contentName != null && !contentName.isEmpty()) {
+                info = fileService.create(nodeRef, contentName, ContentModel.TYPE_CONTENT);
+                Map<QName,Serializable> props = new HashMap<QName,Serializable>();
+                props.put(ContentModel.PROP_TITLE, contentName);
+                props.put(ContentModel.PROP_DESCRIPTION, "This is the description");
+                nodeService.setProperties(nodeRef, props);
+                // nodeService.addProperties(nodeRef, ContentModel.PROP_TITLE);
+                ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
+                writer.setLocale(Locale.ENGLISH);
+                File file = new File("C:/Users/Administrator/Desktop/8/test.xml");
+                writer.setMimetype("text/xml");
+                writer.putContent(file);
+                createContBean.setStatus(contentName + " was created");
+            } else {
+                createContBean.setStatus("The content needs a name");
             }
-
-
 
             response.getWriter().write(mapper.writeValueAsString(createContBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
-        }catch (Throwable e) {
+        } catch (FileExistsException exception) {
+            String errorMsg = "Content already exists, unable to create. Try Other name.";
+            createContBean.setStatus(errorMsg);
+        } catch (Throwable e) {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
 
     }
-
-
 
     public void setRepository(final Repository repository) {
 
