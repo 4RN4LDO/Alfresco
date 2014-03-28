@@ -3,6 +3,7 @@ package org.ieee.sa.x1ng.webscripts.node;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +18,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
@@ -39,9 +41,10 @@ public class UploadContent extends AbstractWebScript {
             LOG.debug("Start executeImpl()");
             FileFolderService fileService = m_serviceRegistry.getFileFolderService();
             NodeService nodeService = m_serviceRegistry.getNodeService();
-         
+
             String nodeRefStr = request.getParameter("NodeRef");
             String uploadName = request.getParameter("Name");
+            //Part filePart = request.getPart("file");
             NodeRef nodeRef = new NodeRef(nodeRefStr);
 
             try {
@@ -57,9 +60,11 @@ public class UploadContent extends AbstractWebScript {
                             props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
                             props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
                             nodeService.setProperties(info.getNodeRef(), props);
+                            ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
+                            writer.setLocale(Locale.ENGLISH);
+                            writer.setMimetype("text/xml");
+                            writer.putContent(field.getInputStream());
                         }
-                        field.getInputStream();
-
                         break;
                     }
                 }
