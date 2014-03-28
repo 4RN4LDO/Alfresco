@@ -17,7 +17,6 @@ import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
-import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -28,10 +27,8 @@ import org.alfresco.web.scripts.WebScriptResponse;
 
 public class UploadContent extends AbstractWebScript {
 
-
         private static Logger LOG = Logger.getLogger(UploadContent.class);
-        protected ContentService m_contentService = null;
-        protected NodeRef m_nodeRef = null;
+
         protected Repository m_repository;
         protected ServiceRegistry m_serviceRegistry = null;
 
@@ -44,35 +41,48 @@ public class UploadContent extends AbstractWebScript {
 
             String nodeRefStr = request.getParameter("NodeRef");
             String uploadName = request.getParameter("Name");
-            //Part filePart = request.getPart("file");
             NodeRef nodeRef = new NodeRef(nodeRefStr);
 
             try {
-                final FormData form = (FormData)request.parseContent();
-                for (FormData.FormField field : form.getFields()) {
-                    if (field.getIsFile()) {
-                        FileInfo info;
-                        if (uploadName != null && !uploadName.isEmpty()) {
-                            info = fileService.create(nodeRef, uploadName, ContentModel.TYPE_CONTENT);
-                            Map<QName,Serializable> props = new HashMap<QName,Serializable>();
-                            props.put(ContentModel.PROP_NAME, uploadName);
-                            props.put(ContentModel.PROP_TITLE, request.getParameter("Title"));
-                            props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
-                            props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
-                            nodeService.setProperties(info.getNodeRef(), props);
-                            ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
-                            writer.setLocale(Locale.ENGLISH);
-                            writer.setMimetype("text/xml");
-                            writer.putContent(field.getInputStream());
-                        }
-                        break;
-                    }
-                }
+                updloadContent(request, fileService, nodeService, uploadName, nodeRef);
+
             } catch (Throwable e) {
                 String errorMsg = "Unable to save content to node ";
                 throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
             }
 
+        }
+
+        /**
+         * @param request
+         * @param fileService
+         * @param nodeService
+         * @param uploadName
+         * @param nodeRef
+         */
+        public void updloadContent(final WebScriptRequest request, final FileFolderService fileService, final NodeService nodeService,
+                final String uploadName, final NodeRef nodeRef) {
+
+            final FormData form = (FormData)request.parseContent();
+            for (FormData.FormField field : form.getFields()) {
+                if (field.getIsFile()) {
+                    FileInfo info;
+                    if (uploadName != null && !uploadName.isEmpty()) {
+                        info = fileService.create(nodeRef, uploadName, ContentModel.TYPE_CONTENT);
+                        Map<QName,Serializable> props = new HashMap<QName,Serializable>();
+                        props.put(ContentModel.PROP_NAME, uploadName);
+                        props.put(ContentModel.PROP_TITLE, request.getParameter("Title"));
+                        props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
+                        props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
+                        nodeService.setProperties(info.getNodeRef(), props);
+                        ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
+                        writer.setLocale(Locale.ENGLISH);
+                        writer.setMimetype("text/xml");
+                        writer.putContent(field.getInputStream());
+                    }
+                    break;
+                }
+            }
         }
 
         public void setRepository(final Repository repository) {
