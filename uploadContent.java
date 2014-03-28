@@ -3,7 +3,6 @@ package org.ieee.sa.x1ng.webscripts.node;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -21,10 +20,10 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.Content;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
-
 
 public class UploadContent extends AbstractWebScript {
 
@@ -46,6 +45,7 @@ public class UploadContent extends AbstractWebScript {
 
             String nodeRefStr = request.getParameter("NodeRef");
             String uploadName = request.getParameter("Name");
+            //Content content = (Content) request.getContent();
             NodeRef nodeRef = new NodeRef(nodeRefStr);
 
             try {
@@ -58,8 +58,11 @@ public class UploadContent extends AbstractWebScript {
                     props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
                     props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
                     nodeService.setProperties(info.getNodeRef(), props);
-                    ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
-                    writer.setLocale(Locale.ENGLISH);
+                    //ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
+                   // writer.setLocale(Locale.ENGLISH);
+                    ContentWriter writer = contService.getWriter(info.getNodeRef(), ContentModel.PROP_CONTENT, true);
+                    writer.setMimetype("text/xml");
+                    writer.putContent(content.getInputStream());
 
                 }
             } catch (Throwable e) {
