@@ -18,6 +18,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -46,13 +47,7 @@ public class ExportContent extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            if (nodeRef != null) {
-                ContentReader reader = contService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-                File file = new File("C:/Users/Administrator/Downloads/foo.bar");
-                reader.getContent(file);
-
-            }
-
+            exportContent(fileService, contService, nodeRef);
 
             response.getWriter().write(mapper.writeValueAsString(nodeRef));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
@@ -60,6 +55,23 @@ public class ExportContent extends AbstractWebScript {
         } catch (Throwable e) {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
+        }
+    }
+
+
+    /**
+     * @param fileService
+     * @param contService
+     * @param nodeRef
+     */
+    public void exportContent(FileFolderService fileService, ContentService contService, NodeRef nodeRef) {
+
+        FileInfo info;
+        info = fileService.getFileInfo(nodeRef);
+        if (nodeRef != null) {
+            ContentReader reader = contService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+            File file = new File("C:/Users/Administrator/Downloads/" + info.getName());
+            reader.getContent(file);
         }
     }
 
