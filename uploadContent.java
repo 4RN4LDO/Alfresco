@@ -77,7 +77,7 @@ public class UploadContent extends AbstractWebScript {
                         nodeService.setProperties(info.getNodeRef(), props);
                         ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(info.getNodeRef());
                         writer.setLocale(Locale.ENGLISH);
-                        writer.setMimetype("text/xml");
+                        writer.guessMimetype(uploadName);
                         writer.putContent(field.getInputStream());
                     }
                     break;
