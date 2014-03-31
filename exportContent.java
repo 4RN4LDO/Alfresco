@@ -48,7 +48,7 @@ public class ExportContent extends AbstractWebScript {
         try {
             if (nodeRef != null) {
                 ContentReader reader = contService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-                File file = new File("C:/Users/Administrator/Downloads/");
+                File file = new File("C:/Users/Administrator/Downloads/foo.bar");
                 reader.getContent(file);
 
             }
