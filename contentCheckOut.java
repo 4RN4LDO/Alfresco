@@ -17,17 +17,21 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.coci.CheckOutCheckInService;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
 
-public class ExportContent extends AbstractWebScript {
-    private static Logger LOG = Logger.getLogger(ExportContent.class);
+public class ContentCheckOut extends AbstractWebScript {
+    private static Logger LOG = Logger.getLogger(ContentCheckOut.class);
 
     protected Repository m_repository = null;
     protected ServiceRegistry m_serviceRegistry = null;
@@ -39,6 +43,8 @@ public class ExportContent extends AbstractWebScript {
         LOG.debug("Start executeImpl()");
 
         FileFolderService fileService = m_serviceRegistry.getFileFolderService();
+        NodeService nodeService = m_serviceRegistry.getNodeService();
+        CheckOutCheckInService checkOutCheckInService = m_serviceRegistry.getCheckOutCheckInService();
         ContentService contService = m_serviceRegistry.getContentService();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -47,34 +53,31 @@ public class ExportContent extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            exportContent(fileService, contService, nodeRef);
+            FileInfo info;
+            info = fileService.getFileInfo(nodeRef);
+            String contentUrl = "";
+            String contentUrl1 = "";
+            if (nodeRef != null) {
+                NodeRef checkedOutCopy = checkOutCheckInService.checkout(nodeRef);
+                ContentWriter writer = contService.getWriter(checkedOutCopy, ContentModel.PROP_CONTENT, false);//fileService.getWriter(checkedOutCopy);
+                contentUrl = writer.getContentUrl();
+                ContentData contData = (ContentData) nodeService.getProperty(checkedOutCopy, ContentModel.PROP_CONTENT);
+                contentUrl1 = contData.getContentUrl();
+                ContentReader reader = contService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                File file = new File("C:/Users/Administrator/Downloads/" + info.getName());
+                reader.getContent(file);
+            }
 
-            response.getWriter().write(mapper.writeValueAsString(nodeRef));
+            response.getWriter().write(mapper.writeValueAsString(contentUrl)+ "\n");
+            response.getWriter().write(mapper.writeValueAsString(contentUrl1));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
-        } catch (Throwable e) {
+        }catch (Throwable e) {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
+
     }
-
-
-    /**
-     * @param fileService
-     * @param contService
-     * @param nodeRef
-     */
-    public void exportContent(FileFolderService fileService, ContentService contService, NodeRef nodeRef) {
-
-        FileInfo info;
-        info = fileService.getFileInfo(nodeRef);
-        if (nodeRef != null) {
-            ContentReader reader = contService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-            File file = new File("C:/Users/Administrator/Downloads/" + info.getName());
-            reader.getContent(file);
-        }
-    }
-
 
     public void setRepository(final Repository repository) {
 
