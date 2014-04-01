@@ -8,3 +8,4 @@ Java web services:
 -Create Document and set Metadata
 -Upload document
 -Export document
+-Check out content
