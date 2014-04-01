@@ -6,4 +6,5 @@ Java web services:
 -Search group users: group name
 -Create folder
 -Create Document and set Metadata
--Upload document
+-Import document
+-Export document
