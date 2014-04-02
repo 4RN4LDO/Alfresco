@@ -10,24 +10,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
-import org.springframework.extensions.webscripts.servlet.FormData;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
+import org.alfresco.repo.version.VersionModel;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
-import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.CopyService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.version.VersionService;
-import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.service.cmr.version.Version;
+import org.alfresco.service.cmr.version.VersionType;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
@@ -44,22 +41,22 @@ public class ContentCheckIn extends AbstractWebScript {
 
         LOG.debug("Start executeImpl()");
 
-        FileFolderService fileService = m_serviceRegistry.getFileFolderService();
-        NodeService nodeService = m_serviceRegistry.getNodeService();
         CheckOutCheckInService checkOutCheckInService = m_serviceRegistry.getCheckOutCheckInService();
         ContentService contService = m_serviceRegistry.getContentService();
-        VersionService version = m_serviceRegistry.getVersionService();
-        CopyService copy = m_serviceRegistry.getCopyService();
-        TransactionService transactionService = m_serviceRegistry.getTransactionService();
 
         ObjectMapper mapper = new ObjectMapper();
 
-        String nodeRefStr = WebScriptUtil.getNodeRef(request);
-        String uploadName = request.getParameter("Name");
+        String nodeRefStr = request.getParameter("NodeRef");
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-
+            NodeRef workingCopy = checkOutCheckInService.getWorkingCopy(nodeRef);
+            ContentReader tempWriter = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
+            String contentUrl = tempWriter.getContentUrl();
+            Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
+            versionProperties3.put(Version.PROP_DESCRIPTION, "description");
+            versionProperties3.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
+            checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl);
 
             response.getWriter().write(mapper.writeValueAsString(nodeRef));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
