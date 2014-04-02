@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.extensions.webscripts.WebScriptException;
+import org.springframework.extensions.webscripts.servlet.FormData;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
@@ -22,6 +23,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.version.Version;
 import org.alfresco.service.cmr.version.VersionType;
@@ -51,12 +53,20 @@ public class ContentCheckIn extends AbstractWebScript {
 
         try {
             NodeRef workingCopy = checkOutCheckInService.getWorkingCopy(nodeRef);
-            ContentReader tempWriter = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
-            String contentUrl = tempWriter.getContentUrl();
+            ContentReader reader = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
+            String contentUrl = reader.getContentUrl();
+            final FormData form = (FormData)request.parseContent();
             Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
             versionProperties3.put(Version.PROP_DESCRIPTION, "description");
             versionProperties3.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
             checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl);
+            for (FormData.FormField field : form.getFields()) {
+                if (field.getIsFile()) {
+                    ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(nodeRef);
+                    writer.putContent(field.getInputStream());
+                    break;
+                }
+            }
 
             response.getWriter().write(mapper.writeValueAsString(nodeRef));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
