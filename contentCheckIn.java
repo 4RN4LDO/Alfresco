@@ -26,6 +26,7 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.version.Version;
+import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.cmr.version.VersionType;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
@@ -45,6 +46,8 @@ public class ContentCheckIn extends AbstractWebScript {
 
         CheckOutCheckInService checkOutCheckInService = m_serviceRegistry.getCheckOutCheckInService();
         ContentService contService = m_serviceRegistry.getContentService();
+        VersionService verService = m_serviceRegistry.getVersionService();
+
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -59,7 +62,9 @@ public class ContentCheckIn extends AbstractWebScript {
             Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
             versionProperties3.put(Version.PROP_DESCRIPTION, "description");
             versionProperties3.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
-            checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl);
+            versionProperties3.put(VersionModel.TYPE_VERSION, "1.1");
+            verService.createVersion(workingCopy, versionProperties3, true);
+            checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl, false);
             for (FormData.FormField field : form.getFields()) {
                 if (field.getIsFile()) {
                     ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(nodeRef);
