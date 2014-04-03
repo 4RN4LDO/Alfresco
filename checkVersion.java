@@ -12,12 +12,9 @@ import org.ieee.sa.x1ng.webscripts.bean.CheckVersionBean;
 import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
 
-import com.componize.alfresco.repo.node.NodePathResolver;
-
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.version.Version;
@@ -30,18 +27,15 @@ import org.alfresco.web.scripts.WebScriptResponse;
 public class CheckVersion extends AbstractWebScript {
     private static Logger LOG = Logger.getLogger(CheckVersion.class);
 
-    protected Repository m_repository = null;
     protected ServiceRegistry m_serviceRegistry = null;
-    protected NodePathResolver m_nodePathResolver = null;
 
     @Override
     public void execute(final WebScriptRequest request, final WebScriptResponse response) throws IOException {
-
         LOG.debug("Start executeImpl()");
 
-        FileFolderService fileService = m_serviceRegistry.getFileFolderService();
-        NodeService nodeService = m_serviceRegistry.getNodeService();
         VersionService versionService = m_serviceRegistry.getVersionService();
+      //  FileFolderService fileService = m_serviceRegistry.getFileFolderService();
+        NodeService nodeService = m_serviceRegistry.getNodeService();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -50,14 +44,21 @@ public class CheckVersion extends AbstractWebScript {
 
         try {
             CheckVersionBean ckVerBean = new CheckVersionBean();
-            if (nodeRef != null) {
-                VersionHistory history = versionService.getVersionHistory(nodeRef);
-                ArrayList<String> _versions = new ArrayList<String>();
-                for (Version version : history.getAllVersions()) {
-                    String ver = version.getVersionLabel();
-                    _versions.add(ver);
+            ArrayList<String> _versions = new ArrayList<String>();
+            if (nodeService.getType(nodeRef).compareTo(ContentModel.TYPE_FOLDER) != 0) {
+                if (nodeRef != null) {
+                    VersionHistory history = versionService.getVersionHistory(nodeRef);
+                    // ArrayList<String> _versions = new ArrayList<String>();
+                    if (history != null) {
+                        for (Version version : history.getAllVersions()) {
+                            String ver = version.getVersionLabel();
+                            _versions.add(ver);
+                        }
+                    }else {
+                        _versions.add(typ);
+                    }
+                    ckVerBean.setVersions(_versions);
                 }
-                ckVerBean.setStatus(_versions);
             }
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
@@ -67,12 +68,6 @@ public class CheckVersion extends AbstractWebScript {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
-
-    }
-
-    public void setRepository(final Repository repository) {
-
-        m_repository = repository;
     }
 
     public void setServiceRegistry(final ServiceRegistry registry) {
@@ -80,8 +75,4 @@ public class CheckVersion extends AbstractWebScript {
         m_serviceRegistry = registry;
     }
 
-    public final void setNodePathResolver(final NodePathResolver nodePathResolver) {
-
-        m_nodePathResolver = nodePathResolver;
-    }
 }
