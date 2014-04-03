@@ -59,25 +59,7 @@ public class ContentCheckIn extends AbstractWebScript {
 
 
         try {
-            NodeRef workingCopy = checkOutCheckInService.getWorkingCopy(nodeRef);
-            ContentReader reader = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
-            String contentData = reader.getContentString();
-            contentData += "\nFile modified by webscript at: " + timeStamp;
-            String contentUrl = reader.getContentUrl();
-            final FormData form = (FormData)request.parseContent();
-            Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
-            versionProperties3.put(Version.PROP_DESCRIPTION, "description");
-            versionProperties3.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
-            versionProperties3.put(VersionModel.TYPE_VERSION, "1.1");
-            verService.createVersion(workingCopy, versionProperties3, true);
-            checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl, false);
-           for (FormData.FormField field : form.getFields()) {
-                if (field.getIsFile()) {
-                    ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(nodeRef);
-                    writer.putContent(contentData);
-                    break;
-                }
-            }
+            checkInContent(request, checkOutCheckInService, contService, verService, nodeRef, timeStamp);
 
             response.getWriter().write(mapper.writeValueAsString(timeStamp));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
@@ -87,6 +69,38 @@ public class ContentCheckIn extends AbstractWebScript {
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
 
+    }
+
+    /**
+     * @param request
+     * @param checkOutCheckInService
+     * @param contService
+     * @param verService
+     * @param nodeRef
+     * @param timeStamp
+     */
+    public void checkInContent(final WebScriptRequest request, CheckOutCheckInService checkOutCheckInService,
+            ContentService contService, VersionService verService, NodeRef nodeRef, String timeStamp) {
+
+        NodeRef workingCopy = checkOutCheckInService.getWorkingCopy(nodeRef);
+        ContentReader reader = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
+        String contentData = reader.getContentString();
+        contentData += "\nFile modified by webscript at: " + timeStamp;
+        String contentUrl = reader.getContentUrl();
+        final FormData form = (FormData)request.parseContent();
+        Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
+        versionProperties3.put(Version.PROP_DESCRIPTION, "description");
+        versionProperties3.put(VersionModel.PROP_VERSION_TYPE, VersionType.MAJOR);
+        versionProperties3.put(VersionModel.TYPE_VERSION, "1.1");
+        verService.createVersion(workingCopy, versionProperties3, true);
+        checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl, false);
+         for (FormData.FormField field : form.getFields()) {
+            if (field.getIsFile()) {
+                ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(nodeRef);
+                writer.putContent(contentData);
+                break;
+            }
+        }
     }
 
     public void setRepository(final Repository repository) {
