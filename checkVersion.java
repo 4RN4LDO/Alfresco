@@ -54,8 +54,7 @@ public class CheckVersion extends AbstractWebScript {
                 VersionHistory history = versionService.getVersionHistory(nodeRef);
                 //ckVerBean.setStatus(history);
                 String versionLabel = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_VERSION_LABEL);
-                //history.getVersion(versionLabel);
-                ckVerBean.setStatus(versionLabel);
+                ckVerBean.setStatus(history.getVersion(versionLabel));
             }
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
