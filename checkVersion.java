@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ieee.sa.x1ng.webscripts.bean.CheckVersionBean;
 import org.ieee.sa.x1ng.webscripts.util.WebScriptUtil;
 import org.springframework.extensions.webscripts.WebScriptException;
 
@@ -18,6 +19,8 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.version.VersionHistory;
+import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
 import org.alfresco.web.scripts.WebScriptResponse;
@@ -36,6 +39,7 @@ public class CheckVersion extends AbstractWebScript {
 
         FileFolderService fileService = m_serviceRegistry.getFileFolderService();
         NodeService nodeService = m_serviceRegistry.getNodeService();
+        VersionService versionService = m_serviceRegistry.getVersionService();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -43,8 +47,14 @@ public class CheckVersion extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
+            CheckVersionBean ckVerBean = new CheckVersionBean();
+             //fileService.getFileInfo(nodeRef);
+            if (nodeRef != null) {
+                VersionHistory history = versionService.getVersionHistory(nodeRef);
+                ckVerBean.setStatus(history);
+            }
 
-            response.getWriter().write(mapper.writeValueAsString(nodeRef));
+            response.getWriter().write(mapper.writeValueAsString(ckVerBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         } catch (Throwable e) {
