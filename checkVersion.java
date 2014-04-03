@@ -20,6 +20,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.version.Version;
 import org.alfresco.service.cmr.version.VersionHistory;
 import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.web.scripts.AbstractWebScript;
@@ -49,12 +50,12 @@ public class CheckVersion extends AbstractWebScript {
 
         try {
             CheckVersionBean ckVerBean = new CheckVersionBean();
-
             if (nodeRef != null) {
                 VersionHistory history = versionService.getVersionHistory(nodeRef);
                 //ckVerBean.setStatus(history);
                 String versionLabel = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_VERSION_LABEL);
-                ckVerBean.setStatus(history.getVersion(versionLabel));
+                Version version = history.getVersion(versionLabel);
+                ckVerBean.setStatus(version);
             }
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
