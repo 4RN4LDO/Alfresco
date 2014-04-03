@@ -13,6 +13,7 @@ import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
@@ -48,10 +49,13 @@ public class CheckVersion extends AbstractWebScript {
 
         try {
             CheckVersionBean ckVerBean = new CheckVersionBean();
-             //fileService.getFileInfo(nodeRef);
+
             if (nodeRef != null) {
                 VersionHistory history = versionService.getVersionHistory(nodeRef);
-                ckVerBean.setStatus(history);
+                //ckVerBean.setStatus(history);
+                String versionLabel = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_VERSION_LABEL);
+                //history.getVersion(versionLabel);
+                ckVerBean.setStatus(versionLabel);
             }
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
