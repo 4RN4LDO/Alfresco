@@ -3,6 +3,8 @@ package org.ieee.sa.x1ng.webscripts.node;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,10 +55,14 @@ public class ContentCheckIn extends AbstractWebScript {
 
         String nodeRefStr = request.getParameter("NodeRef");
         NodeRef nodeRef = new NodeRef(nodeRefStr);
+        String timeStamp = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss").format(Calendar.getInstance().getTime());
+
 
         try {
             NodeRef workingCopy = checkOutCheckInService.getWorkingCopy(nodeRef);
             ContentReader reader = contService.getReader(workingCopy, ContentModel.PROP_CONTENT);
+            String contentData = reader.getContentString();
+            contentData += "\nFile modified by webscript at: " + timeStamp;
             String contentUrl = reader.getContentUrl();
             final FormData form = (FormData)request.parseContent();
             Map<String, Serializable> versionProperties3 = new HashMap<String, Serializable>();
@@ -65,15 +71,15 @@ public class ContentCheckIn extends AbstractWebScript {
             versionProperties3.put(VersionModel.TYPE_VERSION, "1.1");
             verService.createVersion(workingCopy, versionProperties3, true);
             checkOutCheckInService.checkin(workingCopy, versionProperties3, contentUrl, false);
-            for (FormData.FormField field : form.getFields()) {
+           for (FormData.FormField field : form.getFields()) {
                 if (field.getIsFile()) {
                     ContentWriter writer = m_serviceRegistry.getFileFolderService().getWriter(nodeRef);
-                    writer.putContent(field.getInputStream());
+                    writer.putContent(contentData);
                     break;
                 }
             }
 
-            response.getWriter().write(mapper.writeValueAsString(nodeRef));
+            response.getWriter().write(mapper.writeValueAsString(timeStamp));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         }catch (Throwable e) {
