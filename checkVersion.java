@@ -2,6 +2,7 @@ package org.ieee.sa.x1ng.webscripts.node;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,7 +14,6 @@ import org.springframework.extensions.webscripts.WebScriptException;
 
 import com.componize.alfresco.repo.node.NodePathResolver;
 
-import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.ServiceRegistry;
@@ -52,10 +52,12 @@ public class CheckVersion extends AbstractWebScript {
             CheckVersionBean ckVerBean = new CheckVersionBean();
             if (nodeRef != null) {
                 VersionHistory history = versionService.getVersionHistory(nodeRef);
-                //ckVerBean.setStatus(history);
-                String versionLabel = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_VERSION_LABEL);
-                Version version = history.getVersion(versionLabel);
-                ckVerBean.setStatus(version);
+                ArrayList<String> _versions = new ArrayList<String>();
+                for (Version version : history.getAllVersions()) {
+                    String ver = version.getVersionLabel();
+                    _versions.add(ver);
+                }
+                ckVerBean.setStatus(_versions);
             }
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
