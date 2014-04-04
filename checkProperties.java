@@ -3,8 +3,6 @@ package org.ieee.sa.x1ng.webscripts.node;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -53,13 +51,12 @@ public class CheckProperties extends AbstractWebScript {
             String description = (String)props.get(ContentModel.PROP_DESCRIPTION);
             String versionLabel = (String)props.get(ContentModel.PROP_VERSION_LABEL);
             String author = (String)props.get(ContentModel.PROP_AUTHOR);
-            String[] properties = new String[] {"Name: "+name, "Title: "+title,
-                                                "Description: "+description,
-                                                "Version: "+versionLabel, "Author: "+author};
-            ArrayList<String> _properties = new ArrayList<String>();
-            _properties.addAll(Arrays.asList(properties));
 
-            ckProps.setProps(_properties);
+            ckProps.setName(name);
+            ckProps.setTitle(title);
+            ckProps.setDescription(description);
+            ckProps.setAuthor(author);
+            ckProps.setVersion(versionLabel);
 
             response.getWriter().write(mapper.writeValueAsString(ckProps));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
