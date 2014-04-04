@@ -9,3 +9,5 @@ Java web services:
 -Upload document
 -Export document
 -Check out content
+-Check in content
+-Check version
