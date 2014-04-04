@@ -45,9 +45,23 @@ public class CheckProperties extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            
+            CheckPropertiesBean ckProps = new CheckPropertiesBean();
 
-            response.getWriter().write(mapper.writeValueAsString(nodeRef));
+            Map<QName, Serializable> props = nodeService.getProperties(nodeRef);
+            String name = (String)props.get(ContentModel.PROP_NAME);
+            String title = (String)props.get(ContentModel.PROP_TITLE);
+            String description = (String)props.get(ContentModel.PROP_DESCRIPTION);
+            String versionLabel = (String)props.get(ContentModel.PROP_VERSION_LABEL);
+            String author = (String)props.get(ContentModel.PROP_AUTHOR);
+            String[] properties = new String[] {"Name: "+name, "Title: "+title,
+                                                "Description: "+description,
+                                                "Version: "+versionLabel, "Author: "+author};
+            ArrayList<String> _properties = new ArrayList<String>();
+            _properties.addAll(Arrays.asList(properties));
+
+            ckProps.setProps(_properties);
+
+            response.getWriter().write(mapper.writeValueAsString(ckProps));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
             response.setContentEncoding(StandardCharsets.UTF_8.name());
         }catch (Throwable e) {
