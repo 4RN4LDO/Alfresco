@@ -34,7 +34,6 @@ public class CheckVersion extends AbstractWebScript {
         LOG.debug("Start executeImpl()");
 
         VersionService versionService = m_serviceRegistry.getVersionService();
-      //  FileFolderService fileService = m_serviceRegistry.getFileFolderService();
         NodeService nodeService = m_serviceRegistry.getNodeService();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -43,23 +42,7 @@ public class CheckVersion extends AbstractWebScript {
         NodeRef nodeRef = new NodeRef(nodeRefStr);
 
         try {
-            CheckVersionBean ckVerBean = new CheckVersionBean();
-            ArrayList<String> _versions = new ArrayList<String>();
-            if (nodeService.getType(nodeRef).compareTo(ContentModel.TYPE_FOLDER) != 0) {
-                if (nodeRef != null) {
-                    VersionHistory history = versionService.getVersionHistory(nodeRef);
-                    // ArrayList<String> _versions = new ArrayList<String>();
-                    if (history != null) {
-                        for (Version version : history.getAllVersions()) {
-                            String ver = version.getVersionLabel();
-                            _versions.add(ver);
-                        }
-                    }else {
-                        _versions.add(typ);
-                    }
-                    ckVerBean.setVersions(_versions);
-                }
-            }
+            CheckVersionBean ckVerBean = checkVersions(versionService, nodeService, nodeRef);
 
             response.getWriter().write(mapper.writeValueAsString(ckVerBean));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
@@ -68,6 +51,30 @@ public class CheckVersion extends AbstractWebScript {
             String errorMsg = "Unable to retrieve properties for node ";
             throw new WebScriptException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg, e);
         }
+    }
+
+    /**
+     * @param versionService
+     * @param nodeService
+     * @param nodeRef
+     * @return
+     */
+    public CheckVersionBean checkVersions(final VersionService versionService, final NodeService nodeService, final NodeRef nodeRef) {
+
+        CheckVersionBean ckVerBean = new CheckVersionBean();
+        VersionHistory history = versionService.getVersionHistory(nodeRef);
+        ArrayList<String> _versions = new ArrayList<String>();
+        if (nodeService.getType(nodeRef).compareTo(ContentModel.TYPE_FOLDER) != 0 && nodeRef != null && versionService.isVersioned(nodeRef)) {
+            for (Version version : history.getAllVersions()) {
+                String ver = version.getVersionLabel();
+                _versions.add(ver);
+            }
+        }else {
+            _versions.add("1.0");
+        }
+
+        ckVerBean.setVersions(_versions);
+        return ckVerBean;
     }
 
     public void setServiceRegistry(final ServiceRegistry registry) {
