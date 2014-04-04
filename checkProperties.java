@@ -3,6 +3,7 @@ package org.ieee.sa.x1ng.webscripts.node;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -51,12 +52,16 @@ public class CheckProperties extends AbstractWebScript {
             String description = (String)props.get(ContentModel.PROP_DESCRIPTION);
             String versionLabel = (String)props.get(ContentModel.PROP_VERSION_LABEL);
             String author = (String)props.get(ContentModel.PROP_AUTHOR);
+            Date create = (Date) props.get(ContentModel.PROP_CREATED);
+            Date modified = (Date) props.get(ContentModel.PROP_MODIFIED);
 
             ckProps.setName(name);
             ckProps.setTitle(title);
             ckProps.setDescription(description);
             ckProps.setAuthor(author);
             ckProps.setVersion(versionLabel);
+            ckProps.setCreate(create.toString());
+            ckProps.setModified(modified.toString());
 
             response.getWriter().write(mapper.writeValueAsString(ckProps));
             response.setContentType(MimetypeMap.MIMETYPE_JSON);
