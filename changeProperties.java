@@ -14,10 +14,8 @@ import org.springframework.extensions.webscripts.WebScriptException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.web.scripts.AbstractWebScript;
 import org.alfresco.web.scripts.WebScriptRequest;
@@ -32,9 +30,7 @@ public class ChangeProperties extends AbstractWebScript {
     public void execute(final WebScriptRequest request, final WebScriptResponse response) throws IOException {
         LOG.debug("Start executeImpl()");
 
-        VersionService versionService = m_serviceRegistry.getVersionService();
         NodeService nodeService = m_serviceRegistry.getNodeService();
-        FileFolderService fileService = m_serviceRegistry.getFileFolderService();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -43,10 +39,19 @@ public class ChangeProperties extends AbstractWebScript {
 
         try {
             Map<QName, Serializable> props = nodeService.getProperties(nodeRef);
-            props.put(ContentModel.PROP_NAME, request.getParameter("Name"));
-            props.put(ContentModel.PROP_TITLE, request.getParameter("Title"));
-            props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
-            props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
+            if(request.getParameterValues("Title")!=null) {
+                props.put(ContentModel.PROP_TITLE, request.getParameter("Title"));
+            }
+            if(request.getParameterValues("Name")!=null) {
+                props.put(ContentModel.PROP_NAME, request.getParameter("Name"));
+            }
+            if(request.getParameterValues("Description")!=null) {
+                props.put(ContentModel.PROP_DESCRIPTION, request.getParameter("Description"));
+            }
+            if(request.getParameterValues("Author")!=null) {
+                props.put(ContentModel.PROP_AUTHOR, request.getParameter("Author"));
+            }
+
             nodeService.setProperties(nodeRef, props);
 
             response.getWriter().write(mapper.writeValueAsString(nodeRef));
