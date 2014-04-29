@@ -11,3 +11,5 @@ Java web services:
 -Check out content
 -Check in content
 -Check version
+-Check properties
+-Change properties
